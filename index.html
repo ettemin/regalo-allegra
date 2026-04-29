@@ -34,7 +34,6 @@
     color: var(--star);
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
-    /* Rimosso touch-action: none da qui per permettere lo scrolling sugli overlay testuali */
   }
 
   /* ——————————— sfondo cosmico ——————————— */
@@ -61,7 +60,7 @@
     position: fixed; inset: 0;
     width: 100%; height: 100%;
     display: block;
-    touch-action: none; /* Aggiunto qui per bloccare gesture indesiderate solo sul gioco */
+    touch-action: none;
   }
 
   #bg-canvas  { z-index: 1; }
@@ -72,7 +71,6 @@
     position: fixed; inset: 0;
     z-index: 10;
     
-    /* Configurazione per permettere lo scrolling su contenuti lunghi */
     display: block;
     overflow-y: auto;
     overflow-x: hidden;
@@ -86,7 +84,6 @@
     transition: opacity 1.2s ease;
   }
   
-  /* Scrollbar elegante */
   .overlay::-webkit-scrollbar { width: 6px; }
   .overlay::-webkit-scrollbar-track { background: transparent; }
   .overlay::-webkit-scrollbar-thumb { background: var(--gold-soft); border-radius: 3px; }
@@ -387,38 +384,31 @@
 
   /* responsive */
   @media (max-width: 600px) {
-  #hud { padding: 1rem; align-items: center; }
-  .level-name { font-size: 1.15rem; min-width: 110px; }
-  .level-badge { font-size: 0.68rem; letter-spacing: 0.3em; }
-  .nav-btn svg { width: 18px; height: 18px; }
-  .btn { padding: 0.7rem 2rem; font-size: 0.9rem; letter-spacing: 0.28em; }
-  #intro h1 { font-size: 2.4rem; }
-  #intro p { font-size: 1rem; }
-  #final h1 { font-size: 2rem; }
-  .overlay-content { padding: 2rem 1rem; }
+    #hud { padding: 1rem; align-items: center; }
+    .level-name { font-size: 1.15rem; min-width: 110px; }
+    .level-badge { font-size: 0.68rem; letter-spacing: 0.3em; }
+    .nav-btn svg { width: 18px; height: 18px; }
+    .btn { padding: 0.7rem 2rem; font-size: 0.9rem; letter-spacing: 0.28em; }
+    #intro h1 { font-size: 2.4rem; }
+    #intro p { font-size: 1rem; }
+    #final h1 { font-size: 2rem; }
+    .overlay-content { padding: 2rem 1rem; }
 
-  #footer-controls {
-    bottom: calc(1rem + env(safe-area-inset-bottom));
-    gap: 0.6rem;
-    width: calc(100% - 2rem);
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+    #footer-controls {
+      bottom: calc(1rem + env(safe-area-inset-bottom));
+      gap: 0.6rem;
+      width: calc(100% - 2rem);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
-  #footer-controls .btn-ghost {
-    font-size: 0.68rem;
-    letter-spacing: 0.18em;
-    padding: 0.55rem 0.85rem;
+    #hint {
+      bottom: calc(8rem + env(safe-area-inset-bottom)); /* Aumentato da 5rem a 8rem per non coprirlo coi bottoni a capo */
+      width: 100%;
+      padding: 0 1.5rem;
+      font-size: 0.85rem; /* Ridotto leggermente per stare comodo su una/due righe */
+    }
   }
-
-  #hint {
-    bottom: calc(8.5rem + env(safe-area-inset-bottom));
-    width: 100%;
-    z-index: 6;
-    padding: 0 1.25rem;
-    line-height: 1.35;
-  }
-}
 </style>
 </head>
 
@@ -736,7 +726,7 @@ function buildInitials() {
     { nx: 0.78, ny: 0.49 }, { nx: 0.62, ny: 0.78 }, { nx: 0.85, ny: 0.78 }
   ];
   const stars =[...A, ...E].map((p, i) => ({ id: i, nx: p.nx, ny: p.ny }));
-  const edges = [[0, 3],[3, 1],[1, 4],[4, 2], [3, 4],[5, 6],[5, 7], [7, 8],[7, 9],[9, 10]];
+  const edges = [[0, 3],[3, 1],[1, 4],[4, 2],[3, 4],[5, 6],[5, 7], [7, 8],[7, 9],[9, 10]];
   const decoys =[
     { nx: 0.50, ny: 0.12 }, { nx: 0.06, ny: 0.32 },
     { nx: 0.96, ny: 0.42 }, { nx: 0.50, ny: 0.92 },
@@ -801,7 +791,7 @@ const state = {
   levelIndex: 0,
   maxUnlocked: 0,
   finishedLevels: new Set(), // Registra i livelli già risolti per mostrarli pre-assemblati
-  stars: [],
+  stars:[],
   edges:[],
   completed: new Set(),
   selected: null,
