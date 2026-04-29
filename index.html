@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Buon Compleanno alla mia Stella Allegra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Italiana&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:        #03050f;
+    --bg-mid:         #0a0f24;
+    --bg-warm:        #1a1238;
+    --star:           #fdfbf2;
+    --star-soft:      #f6efd8;
+    --gold:           #e9c879;
+    --gold-bright:    #f5d98a;
+    --gold-soft:      rgba(233, 200, 121, 0.55);
+    --gold-faint:     rgba(233, 200, 121, 0.18);
+    --error:          #d97a6c;
+    --serif-display:  'Italiana', 'Cormorant Garamond', serif;
+    --serif-body:     'Cormorant Garamond', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-deep);
+    font-family: var(--serif-body);
+    color: var(--star);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    /* Rimosso touch-action: none da qui per permettere lo scrolling sugli overlay testuali */
+  }
+
+  /* ——————————— sfondo cosmico ——————————— */
+  .cosmos {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 25% 30%, rgba(82, 50, 130, 0.28), transparent 60%),
+      radial-gradient(ellipse 70% 60% at 80% 70%, rgba(40, 70, 130, 0.22), transparent 60%),
+      radial-gradient(ellipse 80% 80% at 50% 50%, var(--bg-warm), transparent 70%),
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 50%, var(--bg-deep) 100%);
+    z-index: 0;
+  }
+
+  .cosmos::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  canvas {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+    touch-action: none; /* Aggiunto qui per bloccare gesture indesiderate solo sul gioco */
+  }
+
+  #bg-canvas  { z-index: 1; }
+  #game-canvas { z-index: 2; }
+
+  /* ——————————— overlay generici ——————————— */
+  .overlay {
+    position: fixed; inset: 0;
+    z-index: 10;
+    
+    /* Configurazione per permettere lo scrolling su contenuti lunghi */
+    display: block;
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    background: rgba(3, 5, 15, 0.75); 
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  
+  /* Scrollbar elegante */
+  .overlay::-webkit-scrollbar { width: 6px; }
+  .overlay::-webkit-scrollbar-track { background: transparent; }
+  .overlay::-webkit-scrollbar-thumb { background: var(--gold-soft); border-radius: 3px; }
+
+  .overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .overlay.fade-fast { transition: opacity 0.5s ease; }
+
+  .overlay-content {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    max-width: 700px;
+    text-align: center;
+  }
+
+  /* ——————————— intro ——————————— */
+  #intro h1 {
+    font-family: var(--serif-display);
+    font-weight: 400;
+    font-size: clamp(2.2rem, 6vw, 4.8rem);
+    letter-spacing: 0.04em;
+    color: var(--star);
+    margin-bottom: 1.2rem;
+    text-shadow: 0 0 30px rgba(245, 217, 138, 0.15);
+    opacity: 0;
+    animation: rise 2.2s ease 0.3s forwards;
+  }
+  #intro h1 em {
+    font-style: italic;
+    color: var(--gold-bright);
+    font-weight: 300;
+  }
+  #intro p {
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
+    line-height: 1.7;
+    color: var(--star-soft);
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: rise 2.2s ease 1.3s forwards;
+  }
+  #intro .instructions {
+    color: var(--gold-bright);
+    font-style: italic;
+    font-size: 1.05em;
+    margin-top: 1rem;
+    display: block;
+  }
+  #intro .start-btn {
+    opacity: 0;
+    animation: rise 2.2s ease 2.3s forwards;
+  }
+
+  .ornament {
+    display: block;
+    margin: 0 auto 2.5rem;
+    color: var(--gold);
+    opacity: 0;
+    animation: fadeIn 2s ease 0.1s forwards;
+  }
+
+  /* ——————————— bottoni ——————————— */
+  .btn {
+    background: rgba(3, 5, 15, 0.4);
+    color: var(--gold-bright);
+    border: 1px solid var(--gold-soft);
+    padding: 0.85rem 2.6rem;
+    font-family: var(--serif-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    text-decoration: none;
+    display: inline-block;
+    backdrop-filter: blur(8px);
+  }
+  .btn:hover, .btn:focus {
+    color: var(--bg-deep);
+    background: var(--gold-bright);
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 60px rgba(245, 217, 138, 0.35);
+    outline: none;
+  }
+  .btn-ghost {
+    border: 1px solid rgba(253, 251, 242, 0.18);
+    color: var(--star-soft);
+    font-size: 0.78rem;
+    padding: 0.5rem 1.4rem;
+    letter-spacing: 0.28em;
+  }
+  .btn-ghost:hover {
+    background: rgba(253, 251, 242, 0.06);
+    color: var(--star);
+    border-color: rgba(253, 251, 242, 0.4);
+    box-shadow: none;
+  }
+
+  /* ——————————— HUD Navigation ——————————— */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 1.5rem 2rem;
+    z-index: 5;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  #hud.visible { opacity: 1; }
+  .hud-left, .hud-right { pointer-events: auto; }
+
+  .level-badge {
+    font-family: var(--serif-display);
+    font-size: 0.78rem;
+    letter-spacing: 0.45em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+    text-align: center;
+  }
+
+  .level-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+  }
+  .nav-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--star-soft);
+    cursor: pointer;
+    padding: 0.5rem;
+    margin: -0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  .nav-btn svg { width: 20px; height: 20px; }
+  .nav-btn:hover:not(:disabled) {
+    color: var(--gold-bright);
+    background: rgba(233, 200, 121, 0.1);
+    border-color: var(--gold-faint);
+    transform: scale(1.1);
+  }
+  .nav-btn:disabled {
+    opacity: 0.15;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .level-name {
+    font-family: var(--serif-display);
+    font-size: 1.4rem;
+    font-style: italic;
+    color: var(--star);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    min-width: 150px;
+    text-align: center;
+  }
+
+  .progress {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    margin-top: 0.3rem;
+  }
+  .progress-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(253, 251, 242, 0.22);
+    transition: all 0.5s ease;
+    cursor: pointer;
+  }
+  .progress-dot:hover:not(.locked) {
+    transform: scale(1.4);
+    background: rgba(253, 251, 242, 0.6);
+  }
+  .progress-dot.active {
+    background: var(--gold-bright);
+    box-shadow: 0 0 12px var(--gold-soft);
+    cursor: default;
+    transform: scale(1.2);
+  }
+  .progress-dot.done {
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold-faint);
+  }
+  .progress-dot.locked {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  /* ——————————— bottoni footer ——————————— */
+  #footer-controls {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    display: flex;
+    gap: 1rem;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  #footer-controls.visible { opacity: 0.6; }
+  #footer-controls:hover { opacity: 1; }
+
+  /* ——————————— level complete ——————————— */
+  #level-complete h2 {
+    font-family: var(--serif-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: var(--gold-bright);
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 40px rgba(245, 217, 138, 0.3);
+  }
+  #level-complete p {
+    font-size: 1.05rem;
+    color: var(--star-soft);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+  }
+
+  /* ——————————— final ——————————— */
+  #final h1 {
+    font-family: var(--serif-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 4rem);
+    color: var(--star);
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.05em;
+  }
+  #final h1 em {
+    color: var(--gold-bright);
+    font-style: italic;
+  }
+  #final p {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--star-soft);
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+  }
+  #final .signature {
+    font-family: var(--serif-display);
+    font-style: italic;
+    color: var(--gold);
+    font-size: 1.4rem;
+    margin-top: 3rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* ——————————— animazioni ——————————— */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ——————————— suggerimento iniziale ——————————— */
+  #hint {
+    position: fixed;
+    bottom: 4.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    font-family: var(--serif-body);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--star-soft);
+    opacity: 0;
+    transition: opacity 1s ease;
+    pointer-events: none;
+    text-align: center;
+    letter-spacing: 0.05em;
+    padding: 0 2rem;
+  }
+  #hint.visible { opacity: 0.55; }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    #hud { padding: 1rem; align-items: center; }
+    .level-name { font-size: 1.15rem; min-width: 110px; }
+    .level-badge { font-size: 0.68rem; letter-spacing: 0.3em; }
+    .nav-btn svg { width: 18px; height: 18px; }
+    .btn { padding: 0.7rem 2rem; font-size: 0.9rem; letter-spacing: 0.28em; }
+    #intro h1 { font-size: 2.4rem; }
+    #intro p { font-size: 1rem; }
+    #final h1 { font-size: 2rem; }
+    .overlay-content { padding: 2rem 1rem; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="cosmos"></div>
+<canvas id="bg-canvas"></canvas>
+<canvas id="game-canvas"></canvas>
+
+<div id="hud">
+  <div class="hud-left">
+    <div class="level-badge" id="level-badge">Costellazione I</div>
+    <div class="level-nav">
+      <button class="nav-btn" id="btn-prev" aria-label="Precedente" title="Costellazione precedente">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+      </button>
+      <div class="level-name" id="level-name">Il Cuore</div>
+      <button class="nav-btn" id="btn-next" aria-label="Successiva" title="Prossima costellazione">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="hud-right">
+    <div class="progress" id="progress">
+      <span class="progress-dot"></span>
+      <span class="progress-dot"></span>
+      <span class="progress-dot"></span>
+      <span class="progress-dot"></span>
+      <span class="progress-dot"></span>
+    </div>
+  </div>
+</div>
+
+<div id="hint">tocca due stelle per collegarle · evita le stelle intruse!</div>
+
+<div id="footer-controls">
+  <button class="btn btn-ghost" id="restart-btn" type="button">Ricomincia livello</button>
+  <button class="btn btn-ghost" id="sound-btn" type="button">Suono · attivo</button>
+</div>
+
+<!-- INTRO PERSONALIZZATO -->
+<div id="intro" class="overlay visible">
+  <div class="overlay-content">
+    <svg class="ornament" width="120" height="20" viewBox="0 0 120 20" fill="none">
+      <line x1="0" y1="10" x2="40" y2="10" stroke="currentColor" stroke-width="0.5"/>
+      <circle cx="60" cy="10" r="2.5" fill="currentColor"/>
+      <circle cx="48" cy="10" r="0.8" fill="currentColor"/>
+      <circle cx="72" cy="10" r="0.8" fill="currentColor"/>
+      <line x1="80" y1="10" x2="120" y2="10" stroke="currentColor" stroke-width="0.5"/>
+    </svg>
+    <h1>Buon compleanno,<br><em>Allegra</em></h1>
+    <p>
+      Nello spazio infinito si incrociano miliardi di corpi celesti, ma solo una stella è la mia: tu.<br><br>
+      Oggi compi 26 anni. È un giorno tragico, perché significa che Leonardo DiCaprio ti avrebbe già bloccata su WhatsApp... ma tranquilla, io non sono Leo e resto qui (anche perché ormai sei vecchia).<br><br>
+      Per il tuo compleanno volevo farti un regalo che non fosse solo "comprato", ma creato con le mie mani. Il tuo vero regalo, però, te lo devi guadagnare!<br>
+      <span class="instructions">HINT: Tocca due stelle per collegarle e ricomponi le 5 costellazioni del nostro amore. Attenta però, ci sono delle stelle "intruse": ignorale e disegna solo ciò che conta.</span>
+    </p>
+    <button class="btn start-btn" id="start-btn" type="button">Inizia</button>
+  </div>
+</div>
+
+<!-- LEVEL COMPLETE -->
+<div id="level-complete" class="overlay">
+  <div class="overlay-content">
+    <h2 id="level-complete-title">Bellissima</h2>
+    <p id="level-complete-sub">una costellazione ricomposta</p>
+    <button class="btn" id="level-complete-btn" style="margin-top: 2.5rem;">Prossima Costellazione</button>
+  </div>
+</div>
+
+<!-- FINAL PERSONALIZZATO -->
+<div id="final" class="overlay">
+  <div class="overlay-content">
+    <svg class="ornament" width="160" height="24" viewBox="0 0 160 24" fill="none">
+      <line x1="0" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="0.5"/>
+      <circle cx="60" cy="12" r="1" fill="currentColor"/>
+      <circle cx="80" cy="12" r="3" fill="currentColor"/>
+      <circle cx="100" cy="12" r="1" fill="currentColor"/>
+      <line x1="110" y1="12" x2="160" y2="12" stroke="currentColor" stroke-width="0.5"/>
+    </svg>
+    <h1>Hai ricomposto<br><em>il nostro cielo</em></h1>
+    <p>
+      Ogni stella che hai unito è un pezzetto di noi.<br>
+      Anche a 26 anni compiuti, continui a essere la mia stella preferita in tutto l'universo.<br>
+      Adesso che hai faticato e superato le intruse, ti sei meritata il tuo vero regalo.
+    </p>
+    <a class="btn" id="gift-btn" href="regalo.html">Scopri il regalo</a>
+    <div class="signature">— Il tuo ragazzo</div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ───── canvas e dimensioni ───── */
+const bgCanvas   = document.getElementById('bg-canvas');
+const gameCanvas = document.getElementById('game-canvas');
+const bgCtx      = bgCanvas.getContext('2d');
+const ctx        = gameCanvas.getContext('2d');
+
+let W = 0, H = 0, DPR = 1;
+
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  for (const c of[bgCanvas, gameCanvas]) {
+    c.width  = W * DPR;
+    c.height = H * DPR;
+    c.style.width  = W + 'px';
+    c.style.height = H + 'px';
+  }
+  bgCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  rebuildLevelStars();
+}
+window.addEventListener('resize', resize);
+
+/* ───── audio ───── */
+let audioCtx = null;
+let masterGain = null;
+let soundOn = true;
+
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.35;
+    masterGain.connect(audioCtx.destination);
+  } catch (e) { audioCtx = null; }
+}
+
+function playTone({ freq = 440, type = 'sine', duration = 0.2, attack = 0.01, release = 0.15, vol = 0.3, detune = 0 }) {
+  if (!soundOn || !audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  osc.detune.value = detune;
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(vol, t0 + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration + release);
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(t0);
+  osc.stop(t0 + duration + release + 0.05);
+}
+
+function sndSelect()    { playTone({ freq: 880, duration: 0.07, vol: 0.18, release: 0.12 }); }
+function sndConnect()   {
+  playTone({ freq: 523.25, duration: 0.18, vol: 0.18, release: 0.25 });
+  playTone({ freq: 659.25, duration: 0.18, vol: 0.14, release: 0.25, detune: 4 });
+  playTone({ freq: 783.99, duration: 0.18, vol: 0.10, release: 0.30 });
+}
+function sndError()     { playTone({ freq: 145, type: 'sawtooth', duration: 0.12, vol: 0.12, release: 0.10 }); }
+function sndLevelDone() {
+  const notes =[523.25, 659.25, 783.99, 1046.5];
+  notes.forEach((f, i) => setTimeout(() => playTone({ freq: f, duration: 0.25, vol: 0.16, release: 0.4 }), i * 90));
+}
+function sndFinal()     {
+  if (!soundOn || !audioCtx) return;
+  const chord =[261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+  chord.forEach((f, i) => setTimeout(() => playTone({ freq: f, duration: 1.4, vol: 0.10, release: 1.6, attack: 0.4 }), i * 80));
+}
+
+/* ───── definizione livelli ───── */
+function genDigit(digit, baseX, baseY, w, h, idStart) {
+  const stars =[];
+  const edges =[];
+  const id = (n) => idStart + n;
+  switch (digit) {
+    case '1':
+      stars.push({ id: id(0), nx: baseX + w*0.30, ny: baseY + h*0.10 });
+      stars.push({ id: id(1), nx: baseX + w*0.65, ny: baseY });
+      stars.push({ id: id(2), nx: baseX + w*0.65, ny: baseY + h });
+      edges.push([id(0), id(1)],[id(1), id(2)]);
+      break;
+    case '2':
+      stars.push({ id: id(0), nx: baseX + w*0.10, ny: baseY + h*0.10 });
+      stars.push({ id: id(1), nx: baseX + w*0.85, ny: baseY });
+      stars.push({ id: id(2), nx: baseX + w*0.85, ny: baseY + h*0.45 });
+      stars.push({ id: id(3), nx: baseX + w*0.10, ny: baseY + h*0.55 });
+      stars.push({ id: id(4), nx: baseX + w*0.10, ny: baseY + h });
+      stars.push({ id: id(5), nx: baseX + w*0.95, ny: baseY + h });
+      edges.push([id(0), id(1)],[id(1), id(2)], [id(2), id(3)],[id(3), id(4)],[id(4), id(5)]);
+      break;
+    case '6':
+      stars.push({ id: id(0), nx: baseX + w*0.85, ny: baseY + h*0.10 });
+      stars.push({ id: id(1), nx: baseX + w*0.15, ny: baseY });
+      stars.push({ id: id(2), nx: baseX + w*0.15, ny: baseY + h*0.50 });
+      stars.push({ id: id(3), nx: baseX + w*0.15, ny: baseY + h });
+      stars.push({ id: id(4), nx: baseX + w*0.85, ny: baseY + h });
+      stars.push({ id: id(5), nx: baseX + w*0.85, ny: baseY + h*0.50 });
+      edges.push([id(0), id(1)],[id(1), id(2)],[id(2), id(3)],[id(3), id(4)], [id(4), id(5)],[id(5), id(2)]);
+      break;
+    case '0':
+      stars.push({ id: id(0), nx: baseX + w*0.15, ny: baseY });
+      stars.push({ id: id(1), nx: baseX + w*0.85, ny: baseY });
+      stars.push({ id: id(2), nx: baseX + w*0.85, ny: baseY + h });
+      stars.push({ id: id(3), nx: baseX + w*0.15, ny: baseY + h });
+      edges.push([id(0), id(1)],[id(1), id(2)],[id(2), id(3)],[id(3), id(0)]);
+      break;
+    case '/':
+      stars.push({ id: id(0), nx: baseX + w*0.85, ny: baseY });
+      stars.push({ id: id(1), nx: baseX + w*0.15, ny: baseY + h });
+      edges.push([id(0), id(1)]);
+      break;
+  }
+  return { stars, edges, nextId: idStart + stars.length };
+}
+
+// LIVELLO 1: 26 Anni
+function build26() {
+  const stars =[];
+  const edges =[];
+  let nextId = 0;
+  const y = 0.3, h = 0.4, dW = 0.16, gap = 0.08;
+  const chars = ['2','6'];
+  let x = (1 - (chars.length*dW + (chars.length-1)*gap)) / 2;
+  for (const c of chars) {
+    const r = genDigit(c, x, y, dW, h, nextId);
+    stars.push(...r.stars); edges.push(...r.edges); nextId = r.nextId;
+    x += dW + gap;
+  }
+  const decoys =[
+    { nx: 0.15, ny: 0.20 }, { nx: 0.85, ny: 0.20 },
+    { nx: 0.50, ny: 0.15 }, { nx: 0.50, ny: 0.85 },
+    { nx: 0.15, ny: 0.75 }, { nx: 0.85, ny: 0.75 }
+  ];
+  decoys.forEach(d => { stars.push({ id: nextId++, nx: d.nx, ny: d.ny, decoy: true }); });
+  return { name: 'I Tuoi 26', sub: 'addio Leo DiCaprio', roman: 'I', stars, edges };
+}
+
+// LIVELLO 2: Cuore
+function buildHeart() {
+  const pts =[
+    { nx: 0.50, ny: 0.36 }, { nx: 0.61, ny: 0.24 }, { nx: 0.74, ny: 0.28 },
+    { nx: 0.80, ny: 0.42 }, { nx: 0.75, ny: 0.58 }, { nx: 0.62, ny: 0.74 },
+    { nx: 0.50, ny: 0.87 }, { nx: 0.38, ny: 0.74 }, { nx: 0.25, ny: 0.58 },
+    { nx: 0.20, ny: 0.42 }, { nx: 0.26, ny: 0.28 }, { nx: 0.39, ny: 0.24 }
+  ];
+  const N = pts.length;
+  const stars = pts.map((p, i) => ({ id: i, nx: p.nx, ny: p.ny }));
+  const edges =[];
+  for (let i = 0; i < N; i++) edges.push([i, (i + 1) % N]);
+  const decoys =[
+    { nx: 0.06, ny: 0.14 }, { nx: 0.94, ny: 0.14 },
+    { nx: 0.10, ny: 0.50 }, { nx: 0.90, ny: 0.50 },
+    { nx: 0.50, ny: 0.07 }, { nx: 0.50, ny: 0.95 },
+    { nx: 0.08, ny: 0.88 }, { nx: 0.92, ny: 0.88 }
+  ];
+  decoys.forEach((d, i) => stars.push({ id: N + i, nx: d.nx, ny: d.ny, decoy: true }));
+  return { name: 'Il Cuore', sub: 'ciò che ci unisce', roman: 'II', stars, edges };
+}
+
+// LIVELLO 3: Iniziali
+function buildInitials() {
+  const A =[
+    { nx: 0.18, ny: 0.78 }, { nx: 0.31, ny: 0.20 }, { nx: 0.44, ny: 0.78 },
+    { nx: 0.232, ny: 0.55 }, { nx: 0.388, ny: 0.55 }
+  ];
+  const E =[
+    { nx: 0.62, ny: 0.20 }, { nx: 0.85, ny: 0.20 }, { nx: 0.62, ny: 0.49 },
+    { nx: 0.78, ny: 0.49 }, { nx: 0.62, ny: 0.78 }, { nx: 0.85, ny: 0.78 }
+  ];
+  const stars =[...A, ...E].map((p, i) => ({ id: i, nx: p.nx, ny: p.ny }));
+  const edges = [[0, 3],[3, 1],[1, 4],[4, 2], [3, 4],[5, 6],[5, 7], [7, 8],[7, 9],[9, 10]];
+  const decoys =[
+    { nx: 0.50, ny: 0.12 }, { nx: 0.06, ny: 0.32 },
+    { nx: 0.96, ny: 0.42 }, { nx: 0.50, ny: 0.92 },
+    { nx: 0.06, ny: 0.85 }, { nx: 0.96, ny: 0.90 }, { nx: 0.50, ny: 0.50 }
+  ];
+  decoys.forEach((d, i) => stars.push({ id: 11 + i, nx: d.nx, ny: d.ny, decoy: true }));
+  return { name: 'A & E', sub: 'le nostre iniziali', roman: 'III', stars, edges };
+}
+
+// LIVELLO 4: Il Lago
+function buildLake() {
+  const stars =[
+    { id: 0, nx: 0.50, ny: 0.10 }, { id: 1, nx: 0.50, ny: 0.30 },
+    { id: 2, nx: 0.50, ny: 0.50 }, { id: 3, nx: 0.38, ny: 0.65 },
+    { id: 4, nx: 0.26, ny: 0.85 }, { id: 5, nx: 0.62, ny: 0.65 }, { id: 6, nx: 0.74, ny: 0.85 }
+  ];
+  const edges = [[0,1], [1,2], [2,3],[3,4], [2,5], [5,6]];
+  const decoys =[
+    { nx: 0.10, ny: 0.20 }, { nx: 0.90, ny: 0.20 },
+    { nx: 0.18, ny: 0.55 }, { nx: 0.82, ny: 0.55 },
+    { nx: 0.50, ny: 0.92 }, { nx: 0.10, ny: 0.92 }
+  ];
+  decoys.forEach((d, i) => stars.push({ id: 7 + i, nx: d.nx, ny: d.ny, decoy: true }));
+  return { name: 'Il Nostro Lago', sub: 'dove il tempo rallenta', roman: 'IV', stars, edges };
+}
+
+// LIVELLO 5: Data
+function buildDate() {
+  const stars = [];
+  const edges =[];
+  let nextId = 0;
+  const topY = 0.18, topH = 0.24, dW = 0.10, gap = 0.04;
+  const topChars =['1','1','/','1','2'];
+  let x = (1 - (topChars.length*dW + (topChars.length-1)*gap)) / 2;
+  for (const c of topChars) {
+    const r = genDigit(c, x, topY, dW, topH, nextId);
+    stars.push(...r.stars); edges.push(...r.edges); nextId = r.nextId;
+    x += dW + gap;
+  }
+  const botY = 0.58, botH = 0.24;
+  const botChars =['2','0','2','2'];
+  x = (1 - (botChars.length*dW + (botChars.length-1)*gap)) / 2;
+  for (const c of botChars) {
+    const r = genDigit(c, x, botY, dW, botH, nextId);
+    stars.push(...r.stars); edges.push(...r.edges); nextId = r.nextId;
+    x += dW + gap;
+  }
+  const decoys =[
+    { nx: 0.06, ny: 0.10 }, { nx: 0.94, ny: 0.08 },
+    { nx: 0.06, ny: 0.50 }, { nx: 0.94, ny: 0.50 },
+    { nx: 0.06, ny: 0.92 }, { nx: 0.94, ny: 0.92 }
+  ];
+  decoys.forEach(d => { stars.push({ id: nextId++, nx: d.nx, ny: d.ny, decoy: true }); });
+  return { name: '11.12.2022', sub: 'l\'inizio di tutto', roman: 'V', stars, edges };
+}
+
+const LEVELS_DEFS =[build26(), buildHeart(), buildInitials(), buildLake(), buildDate()];
+
+/* ───── stato di gioco ───── */
+const state = {
+  phase: 'intro',
+  levelIndex: 0,
+  maxUnlocked: 0,
+  finishedLevels: new Set(), // Registra i livelli già risolti per mostrarli pre-assemblati
+  stars: [],
+  edges:[],
+  completed: new Set(),
+  selected: null,
+  mouse: { x: 0, y: 0, active: false },
+  errorFlash: 0,
+  errorEdge: null,
+  ripples:[],
+  bgStars:[],
+  appearStart: null,
+  successWave: null,
+  finalBurst: null
+};
+
+function buildBgStars() {
+  state.bgStars =[];
+  const N = Math.floor((W * H) / 9000);
+  for (let i = 0; i < N; i++) {
+    state.bgStars.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 0.8 + 0.15,
+      base: Math.random() * 0.55 + 0.15,
+      speed: Math.random() * 0.0009 + 0.0003,
+      phase: Math.random() * Math.PI * 2,
+      drift: (Math.random() - 0.5) * 0.012
+    });
+  }
+}
+
+function rebuildLevelStars() {
+  buildBgStars();
+  if (state.phase !== 'playing' && state.phase !== 'levelDone' && state.phase !== 'final') return;
+  applyLevel(state.levelIndex, false);
+}
+
+function edgeKey(a, b) { return a < b ? a + '-' + b : b + '-' + a; }
+
+function updateNavUI() {
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  
+  btnPrev.disabled = state.levelIndex === 0;
+  btnNext.disabled = state.levelIndex >= Math.min(state.maxUnlocked, LEVELS_DEFS.length - 1);
+
+  document.querySelectorAll('#progress .progress-dot').forEach((d, k) => {
+    d.className = 'progress-dot'; 
+    if (k === state.levelIndex) {
+      d.classList.add('active');
+    } else if (k <= state.maxUnlocked) {
+      d.classList.add('done');
+    } else {
+      d.classList.add('locked');
+    }
+  });
+}
+
+function goToLevel(index) {
+  if (index < 0 || index > state.maxUnlocked || index >= LEVELS_DEFS.length) return;
+  hideOverlay('level-complete'); // Assicuriamoci che l'overlay venga rimosso
+  state.levelIndex = index;
+  state.phase = 'playing';
+  applyLevel(index, true);
+}
+
+function applyLevel(i, isNewLoad = true) {
+  const def = LEVELS_DEFS[i];
+  const padX = Math.max(60, W * 0.08);
+  const padY = Math.max(110, H * 0.16);
+  const innerW = W - padX * 2;
+  const innerH = H - padY * 2;
+
+  if (isNewLoad) {
+    const isDone = state.finishedLevels.has(i);
+
+    state.stars = def.stars.map((s, idx) => ({
+      id: s.id,
+      nx: s.nx, 
+      ny: s.ny,
+      x: padX + s.nx * innerW,
+      y: padY + s.ny * innerH,
+      decoy: !!s.decoy,
+      twinkle: Math.random() * Math.PI * 2,
+      appear: isDone ? 1 : 0,
+      appearDelay: isDone ? 0 : (idx * 22 + Math.random() * 60)
+    }));
+    
+    state.edges = def.edges.map(([a, b]) => [a, b]);
+    
+    if (isDone) {
+      // Se il livello è già completato precedentemente pre-assegnamo tutti i collegamenti
+      state.completed = new Set(state.edges.map(([a, b]) => edgeKey(a, b)));
+      document.getElementById('hint').classList.remove('visible');
+    } else {
+      state.completed = new Set();
+    }
+    
+    state.selected = null;
+    state.errorEdge = null;
+    state.errorFlash = 0;
+    state.ripples =[];
+    state.appearStart = null; 
+    
+    document.getElementById('level-badge').textContent = 'Costellazione ' + def.roman;
+    document.getElementById('level-name').textContent  = def.name;
+    updateNavUI();
+  } else {
+    // Solo ridimensionamento
+    state.stars.forEach(s => {
+      s.x = padX + s.nx * innerW;
+      s.y = padY + s.ny * innerH;
+    });
+  }
+}
+
+/* ───── gestione input unificata (Pointer Events) ───── */
+function getStarAt(px, py) {
+  let best = null, bestDist = Infinity;
+  const radius = 45; 
+  for (const s of state.stars) {
+    if (s.appear < 0.5) continue;
+    const dx = s.x - px, dy = s.y - py;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < radius && d < bestDist) { best = s; bestDist = d; }
+  }
+  return best;
+}
+
+function handleSelect(px, py) {
+  if (state.phase !== 'playing') return;
+  // Disabilita i clic se il livello è già stato completato (funzione 'vetrina')
+  if (state.finishedLevels.has(state.levelIndex)) return; 
+
+  initAudio();
+  
+  const hint = document.getElementById('hint');
+  if (hint.classList.contains('visible')) {
+    hint.classList.remove('visible');
+  }
+
+  const s = getStarAt(px, py);
+  
+  if (!s) {
+    if (state.selected !== null) state.selected = null;
+    return;
+  }
+  
+  if (state.selected === null) {
+    state.selected = s.id;
+    sndSelect();
+    pushRipple(s.x, s.y, '#f5d98a', 35);
+    return;
+  }
+  
+  if (state.selected === s.id) {
+    state.selected = null;
+    return;
+  }
+  
+  const a = state.selected, b = s.id;
+  const key = edgeKey(a, b);
+  const valid = state.edges.some(([x, y]) => edgeKey(x, y) === key);
+  
+  if (valid && !state.completed.has(key)) {
+    state.completed.add(key);
+    sndConnect();
+    pushRipple(s.x, s.y, '#f5d98a', 60);
+    pushRipple(getStarById(a).x, getStarById(a).y, '#f5d98a', 60);
+    
+    state.selected = b; 
+    
+    if (state.completed.size === state.edges.length) {
+      state.selected = null;
+      onLevelComplete();
+    }
+  } else {
+    sndError();
+    state.errorEdge = [a, b];
+    state.errorFlash = performance.now();
+    pushRipple(s.x, s.y, '#d97a6c', 30);
+    state.selected = b;
+  }
+}
+
+function getStarById(id) { return state.stars.find(s => s.id === id); }
+
+function pushRipple(x, y, color, max) {
+  state.ripples.push({ x, y, color, max, t: performance.now() });
+}
+
+function updatePointer(ev) {
+  const rect = gameCanvas.getBoundingClientRect();
+  state.mouse.x = ev.clientX - rect.left;
+  state.mouse.y = ev.clientY - rect.top;
+  state.mouse.active = true;
+  
+  // Non mostrare il puntatore "cliccabile" se il livello è pre-assemblato
+  if (state.phase === 'playing' && !state.finishedLevels.has(state.levelIndex)) {
+    const hoveredStar = getStarAt(state.mouse.x, state.mouse.y);
+    gameCanvas.style.cursor = hoveredStar ? 'pointer' : 'default';
+  } else {
+    gameCanvas.style.cursor = 'default';
+  }
+}
+
+gameCanvas.addEventListener('pointerdown', (ev) => updatePointer(ev));
+gameCanvas.addEventListener('pointermove', (ev) => updatePointer(ev));
+gameCanvas.addEventListener('pointerleave', () => { state.mouse.active = false; });
+gameCanvas.addEventListener('pointerout', () => { state.mouse.active = false; });
+gameCanvas.addEventListener('pointercancel', () => { state.mouse.active = false; });
+gameCanvas.addEventListener('pointerup', (ev) => {
+  const rect = gameCanvas.getBoundingClientRect();
+  handleSelect(ev.clientX - rect.left, ev.clientY - rect.top);
+});
+
+/* ───── flusso di gioco ───── */
+function startGame() {
+  initAudio();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  hideOverlay('intro');
+  state.phase = 'playing';
+  state.levelIndex = 0;
+  state.maxUnlocked = 0;
+  applyLevel(0, true);
+  
+  document.getElementById('hud').classList.add('visible');
+  document.getElementById('footer-controls').classList.add('visible');
+  document.getElementById('hint').classList.add('visible');
+}
+
+function onLevelComplete() {
+  state.phase = 'levelDone';
+  state.finishedLevels.add(state.levelIndex); // Registra il livello completato
+  sndLevelDone();
+  
+  state.successWave = { start: null, duration: 1800 };
+  
+  if (state.levelIndex === state.maxUnlocked) {
+    state.maxUnlocked = Math.min(LEVELS_DEFS.length - 1, state.maxUnlocked + 1);
+  }
+  updateNavUI();
+  
+  const titles =['Ottimo inizio', 'Bellissima', 'Splendida', 'Magnifica', 'Perfetta'];
+  const subs =[
+    'ma non adagiarti, vecchia',
+    'una costellazione ricomposta',
+    'il nostro amore prende forma',
+    'continua a guardare il cielo',
+    'il cielo è di nuovo intero'
+  ];
+
+  setTimeout(() => {
+    document.getElementById('level-complete-title').textContent = titles[state.levelIndex];
+    document.getElementById('level-complete-sub').textContent = subs[state.levelIndex];
+    
+    const btn = document.getElementById('level-complete-btn');
+    if (state.levelIndex < LEVELS_DEFS.length - 1) {
+      btn.textContent = 'Prossima Costellazione';
+    } else {
+      btn.textContent = 'Scopri il regalo';
+    }
+    
+    showOverlay('level-complete');
+  }, 1600);
+}
+
+function enterFinal() {
+  state.phase = 'final';
+  state.finalBurst = { start: null, duration: 3500 };
+  sndFinal();
+  document.getElementById('hud').classList.remove('visible');
+  document.getElementById('footer-controls').classList.remove('visible');
+  setTimeout(() => showOverlay('final'), 2600);
+}
+
+function showOverlay(id) { document.getElementById(id).classList.add('visible'); }
+function hideOverlay(id) { document.getElementById(id).classList.remove('visible'); }
+
+/* ───── animazione particellare per pulsante regalo ───── */
+function launchConfettiDOM() {
+  const colors =['#e9c879', '#f5d98a', '#d97a6c', '#fdfbf2'];
+  for(let i=0; i<80; i++) {
+    const conf = document.createElement('div');
+    conf.style.position = 'fixed';
+    conf.style.zIndex = '9999';
+    conf.style.width = (Math.random() * 8 + 6) + 'px';
+    conf.style.height = (Math.random() * 6 + 4) + 'px';
+    conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    conf.style.top = '-20px';
+    conf.style.left = Math.random() * 100 + 'vw';
+    conf.style.opacity = Math.random() * 0.5 + 0.5;
+    conf.style.transform = `rotate(${Math.random() * 360}deg)`;
+    conf.style.pointerEvents = 'none'; // Evita collisioni col mouse
+    
+    document.body.appendChild(conf);
+    
+    const duration = Math.random() * 2000 + 1500; 
+    conf.animate([
+      { transform: conf.style.transform + ' translateY(0)', top: '-20px' },
+      { transform: `rotate(${Math.random() * 720}deg) translateY(${window.innerHeight + 100}px)`, top: '100vh' }
+    ], {
+      duration: duration,
+      easing: 'cubic-bezier(.37,0,.63,1)',
+      fill: 'forwards'
+    });
+    
+    setTimeout(() => conf.remove(), duration + 100);
+  }
+}
+
+/* ───── rendering ───── */
+function drawBackground(now) {
+  bgCtx.clearRect(0, 0, W, H);
+  for (const s of state.bgStars) {
+    s.phase += s.speed;
+    s.x += s.drift;
+    if (s.x < -2) s.x = W + 2;
+    if (s.x > W + 2) s.x = -2;
+    const alpha = s.base + Math.sin(s.phase) * 0.25;
+    bgCtx.beginPath();
+    bgCtx.fillStyle = 'rgba(253, 251, 242, ' + Math.max(0, alpha).toFixed(3) + ')';
+    bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    bgCtx.fill();
+  }
+}
+
+function drawGame(now) {
+  ctx.clearRect(0, 0, W, H);
+
+  if (state.phase === 'intro') return;
+  if (state.appearStart === null) state.appearStart = now;
+
+  for (const s of state.stars) {
+    const elapsed = now - state.appearStart - s.appearDelay;
+    s.appear = Math.max(s.appear, Math.min(1, elapsed / 700));
+    s.twinkle += 0.018;
+  }
+
+  // ─── linee completate
+  ctx.lineCap = 'round';
+  for (const[a, b] of state.edges) {
+    const key = edgeKey(a, b);
+    if (!state.completed.has(key)) continue;
+    const sa = getStarById(a), sb = getStarById(b);
+    if (!sa || !sb) continue;
+
+    const grad = ctx.createLinearGradient(sa.x, sa.y, sb.x, sb.y);
+    grad.addColorStop(0, 'rgba(245, 217, 138, 0.85)');
+    grad.addColorStop(0.5, 'rgba(253, 235, 178, 1)');
+    grad.addColorStop(1, 'rgba(245, 217, 138, 0.85)');
+
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = 'rgba(245, 217, 138, 0.8)';
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(sa.x, sa.y);
+    ctx.lineTo(sb.x, sb.y);
+    ctx.stroke();
+
+    if (state.successWave) {
+      if (state.successWave.start === null) state.successWave.start = now;
+      const t = (now - state.successWave.start) / state.successWave.duration;
+      if (t >= 0 && t <= 1) {
+        ctx.shadowBlur = 24 + Math.sin(t * Math.PI) * 30;
+        ctx.strokeStyle = 'rgba(255, 240, 200, ' + (0.6 + Math.sin(t * Math.PI) * 0.4) + ')';
+        ctx.lineWidth = 1.5 + Math.sin(t * Math.PI) * 1.5;
+        ctx.beginPath();
+        ctx.moveTo(sa.x, sa.y);
+        ctx.lineTo(sb.x, sb.y);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.shadowBlur = 0;
+
+  // ─── linea preview
+  if (state.selected !== null && state.mouse.active && state.phase === 'playing') {
+    const ss = getStarById(state.selected);
+    if (ss) {
+      ctx.strokeStyle = 'rgba(245, 217, 138, 0.30)';
+      ctx.lineWidth = 0.8;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(ss.x, ss.y);
+      ctx.lineTo(state.mouse.x, state.mouse.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // ─── linea errore
+  if (state.errorEdge) {
+    const dt = performance.now() - state.errorFlash;
+    if (dt < 600) {
+      const a = getStarById(state.errorEdge[0]);
+      const b = getStarById(state.errorEdge[1]);
+      if (a && b) {
+        const alpha = (1 - dt / 600) * 0.7;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = 'rgba(217, 122, 108, ' + alpha + ')';
+        ctx.strokeStyle = 'rgba(217, 122, 108, ' + alpha + ')';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    } else {
+      state.errorEdge = null;
+    }
+  }
+
+  // ─── stelle
+  for (const s of state.stars) {
+    if (s.appear <= 0) continue;
+    const isSelected = state.selected === s.id;
+    const tw = 0.85 + Math.sin(s.twinkle) * 0.15;
+    const a = s.appear;
+    let radius = 2.2;
+    let glowR = 8;
+    let color = 'rgba(253, 251, 242, ' + (a * tw).toFixed(3) + ')';
+    let glowColor = 'rgba(255, 240, 200, ' + (a * 0.5).toFixed(3) + ')';
+    
+    if (isSelected) {
+      radius = 3.4;
+      glowR = 22;
+      color = 'rgba(255, 245, 200, ' + (a).toFixed(3) + ')';
+      glowColor = 'rgba(245, 217, 138, ' + (a * 0.95).toFixed(3) + ')';
+    }
+    
+    ctx.beginPath();
+    const halo = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
+    halo.addColorStop(0, glowColor);
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = halo;
+    ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    if (isSelected) {
+      ctx.strokeStyle = 'rgba(245, 217, 138, ' + (a * 0.5).toFixed(3) + ')';
+      ctx.lineWidth = 0.6;
+      const len = 14;
+      ctx.beginPath();
+      ctx.moveTo(s.x - len, s.y); ctx.lineTo(s.x + len, s.y);
+      ctx.moveTo(s.x, s.y - len); ctx.lineTo(s.x, s.y + len);
+      ctx.stroke();
+    }
+  }
+
+  // ─── ripples
+  state.ripples = state.ripples.filter(r => {
+    const dt = performance.now() - r.t;
+    if (dt > 800) return false;
+    const p = dt / 800;
+    const radius = p * r.max;
+    ctx.beginPath();
+    ctx.strokeStyle = (r.color === '#d97a6c'
+      ? 'rgba(217, 122, 108, ' + ((1 - p) * 0.6) + ')'
+      : 'rgba(245, 217, 138, ' + ((1 - p) * 0.6) + ')');
+    ctx.lineWidth = 1.2;
+    ctx.arc(r.x, r.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    return true;
+  });
+
+  // ─── animazione finale
+  if (state.finalBurst) {
+    if (state.finalBurst.start === null) state.finalBurst.start = now;
+    const t = (now - state.finalBurst.start) / state.finalBurst.duration;
+    if (t >= 0 && t <= 1) {
+      const cx = W / 2, cy = H / 2;
+      const maxR = Math.max(W, H);
+      const R = t * maxR;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+      const intensity = Math.max(0, 1 - t);
+      grad.addColorStop(0, 'rgba(255, 240, 200, ' + (intensity * 0.55) + ')');
+      grad.addColorStop(0.4, 'rgba(245, 217, 138, ' + (intensity * 0.20) + ')');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+    } else if (t > 1) {
+      state.finalBurst = null;
+    }
+  }
+}
+
+function loop(now) {
+  drawBackground(now);
+  drawGame(now);
+  requestAnimationFrame(loop);
+}
+
+/* ───── eventi UI ───── */
+document.getElementById('start-btn').addEventListener('click', startGame);
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  if (state.phase === 'playing' || state.phase === 'levelDone') {
+    // Se lo voglio rigiocare, lo rimuovo da "finiti" e forza un nuovo caricamento vuoto
+    state.finishedLevels.delete(state.levelIndex);
+    state.phase = 'playing';
+    applyLevel(state.levelIndex, true);
+  }
+});
+
+document.getElementById('level-complete-btn').addEventListener('click', () => {
+  initAudio();
+  hideOverlay('level-complete');
+  if (state.levelIndex < LEVELS_DEFS.length - 1) {
+    goToLevel(state.levelIndex + 1);
+  } else {
+    enterFinal();
+  }
+});
+
+document.getElementById('btn-prev').addEventListener('click', () => {
+  initAudio();
+  goToLevel(state.levelIndex - 1);
+});
+document.getElementById('btn-next').addEventListener('click', () => {
+  initAudio();
+  goToLevel(state.levelIndex + 1);
+});
+
+document.querySelectorAll('#progress .progress-dot').forEach((dot, k) => {
+  dot.addEventListener('click', () => {
+    if (k <= state.maxUnlocked && k !== state.levelIndex) {
+      initAudio();
+      goToLevel(k);
+    }
+  });
+});
+
+const soundBtn = document.getElementById('sound-btn');
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  soundBtn.textContent = soundOn ? 'Suono · attivo' : 'Suono · spento';
+  if (soundOn) initAudio();
+});
+
+// Evento che intercetta il click sul "Scopri il Regalo"
+document.getElementById('gift-btn').addEventListener('click', (ev) => {
+  ev.preventDefault(); // Blocca temporaneamente il redirect
+  const href = ev.currentTarget.href;
+  
+  // Suono, coriandoli ed aggiornamento stato UI
+  sndSelect();
+  launchConfettiDOM();
+  ev.currentTarget.textContent = "Preparando il regalo...";
+  ev.currentTarget.style.pointerEvents = "none";
+  ev.currentTarget.style.opacity = "0.7";
+  
+  // Esegue la navigazione alla nuova pagina dopo 2 secondi
+  setTimeout(() => {
+    window.location.href = href;
+  }, 2300);
+});
+
+window.addEventListener('pointerdown', function unlock() {
+  initAudio();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  window.removeEventListener('pointerdown', unlock);
+}, { once: true });
+
+/* ───── boot ───── */
+resize();
+buildBgStars();
+requestAnimationFrame(loop);
+
+})();
+</script>
+
+</body>
+</html>

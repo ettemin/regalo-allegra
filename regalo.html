@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Il Tuo Regalo - Il Nostro Cielo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Italiana&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:        #03050f;
+    --bg-mid:         #0a0f24;
+    --bg-warm:        #1a1238;
+    --star:           #fdfbf2;
+    --star-soft:      #f6efd8;
+    --gold:           #e9c879;
+    --gold-bright:    #f5d98a;
+    --gold-soft:      rgba(233, 200, 121, 0.55);
+    --gold-faint:     rgba(233, 200, 121, 0.18);
+    --serif-display:  'Italiana', 'Cormorant Garamond', serif;
+    --serif-body:     'Cormorant Garamond', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--bg-deep);
+    font-family: var(--serif-body);
+    color: var(--star);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ——————————— Sfondo Cosmico Stile Gioco ——————————— */
+  .cosmos {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 25% 30%, rgba(82, 50, 130, 0.28), transparent 60%),
+      radial-gradient(ellipse 70% 60% at 80% 70%, rgba(40, 70, 130, 0.22), transparent 60%),
+      radial-gradient(ellipse 80% 80% at 50% 50%, var(--bg-warm), transparent 70%),
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 50%, var(--bg-deep) 100%);
+    z-index: -2;
+  }
+
+  .cosmos::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  /* Piccole stelle statiche in CSS per dare profondità */
+  .stars-bg {
+    position: fixed; inset: 0; z-index: -1;
+    background-image: 
+      radial-gradient(1px 1px at 10% 20%, rgba(253, 251, 242, 0.8) 100%, transparent),
+      radial-gradient(1px 1px at 80% 40%, rgba(253, 251, 242, 0.6) 100%, transparent),
+      radial-gradient(2px 2px at 40% 70%, rgba(245, 217, 138, 0.8) 100%, transparent),
+      radial-gradient(1.5px 1.5px at 90% 85%, rgba(253, 251, 242, 0.5) 100%, transparent),
+      radial-gradient(1px 1px at 30% 90%, rgba(253, 251, 242, 0.7) 100%, transparent);
+    background-size: 200px 200px;
+    opacity: 0.5;
+  }
+
+  /* ——————————— Contenuto ——————————— */
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 2s ease 0.5s forwards;
+    opacity: 0;
+  }
+
+  h1 {
+    font-family: var(--serif-display);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    letter-spacing: 0.04em;
+    color: var(--star);
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 30px rgba(245, 217, 138, 0.15);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--gold-bright);
+    font-weight: 300;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    color: var(--star-soft);
+    font-weight: 300;
+    margin-bottom: 4rem;
+    letter-spacing: 0.05em;
+  }
+
+  .ornament {
+    display: block;
+    margin: 0 auto 3rem;
+    color: var(--gold);
+  }
+
+  /* ——————————— Card Regalo ——————————— */
+  .gift-section {
+    margin-bottom: 5rem;
+    background: rgba(3, 5, 15, 0.6);
+    border: 1px solid var(--gold-faint);
+    padding: 2.5rem 2rem;
+    border-radius: 4px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    transition: transform 0.5s ease, border-color 0.5s ease;
+  }
+
+  .gift-section:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold-soft);
+  }
+
+  .gift-image {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(253, 251, 242, 0.1);
+  }
+
+  .gift-section h2 {
+    font-family: var(--serif-display);
+    font-size: 2.2rem;
+    color: var(--gold-bright);
+    font-style: italic;
+    font-weight: 300;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+  }
+
+  .gift-section p {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--star-soft);
+    font-weight: 300;
+    margin: 0 auto;
+    max-width: 500px;
+  }
+
+  .fun-text {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    color: var(--star);
+    font-style: italic;
+    margin-top: 2rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--gold-faint);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 3rem 1.5rem; }
+    .gift-section { padding: 1.5rem 1rem; }
+    .gift-section h2 { font-size: 1.8rem; }
+    .gift-section p { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cosmos"></div>
+<div class="stars-bg"></div>
+
+<div class="container">
+  <h1>Il Tuo Vero <br><em>Regalo</em></h1>
+  <p class="subtitle">Ora che le nostre stelle sono al loro posto, ecco cosa ti aspetta nel mondo reale...</p>
+  
+  <svg class="ornament" width="120" height="20" viewBox="0 0 120 20" fill="none">
+    <line x1="0" y1="10" x2="40" y2="10" stroke="currentColor" stroke-width="0.5"/>
+    <circle cx="60" cy="10" r="2.5" fill="currentColor"/>
+    <circle cx="48" cy="10" r="0.8" fill="currentColor"/>
+    <circle cx="72" cy="10" r="0.8" fill="currentColor"/>
+    <line x1="80" y1="10" x2="120" y2="10" stroke="currentColor" stroke-width="0.5"/>
+  </svg>
+
+  <!-- PRIMA TAPPA -->
+  <div class="gift-section">
+    <!-- Puoi sostituire il link con una foto reale delle cantine se ce l'hai! -->
+    <img class="gift-image" src="/cantina.png" alt="Cantine Berlucchi">
+    <h2>1. Per dimenticare Leo...</h2>
+    <p>Visto che ormai sei fuori target per lui, ho pensato che la cosa migliore fosse annegare i dispiaceri. Inizieremo con un'esclusiva degustazione alle storiche cantine Berlucchi in Franciacorta. Preparati a scoprire i segreti delle bollicine (e a berne parecchie).</p>
+  </div>
+
+  <!-- SECONDA TAPPA -->
+  <div class="gift-section">
+    <!-- Puoi sostituire il link con una foto reale della SPA se ce l'hai! -->
+    <img class="gift-image" src="/hotel.png" alt="Hotel Veronesi La Torre">
+    <h2>2. Detox per i 26 anni</h2>
+    <p>A 26 anni le ossa e le articolazioni iniziano a cedere, lo so. Siccome l'anno scorso la SPA ti era piaciuta tantissimo, ci sposteremo a Verona per passare la notte all'Hotel Veronesi La Torre. Insomma, un po' di meritato relax da "anziana".</p>
+  </div>
+
+  <!-- CONCLUSIONE SIMPATICA -->
+  <p class="fun-text">
+    Riassumendo: preparati a un intero weekend di alcol, bollicine, degustazioni varie e doveroso detox in SPA per rimetterti in sesto. <br><br>
+    <span style="color: var(--gold-bright); font-size: 1.5rem;">Prepara le valigie, vecchia mia.<br>Buon compleanno, amore!</span>
+  </p>
+
+</div>
+
+</body>
+</html>
